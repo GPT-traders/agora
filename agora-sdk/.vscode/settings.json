@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "ngiagoravideotrack.h": "c",
+        "ngiagoraaudiotrack.h": "c",
+        "ngiagoralocaluser.h": "c",
+        "iagoraservice.h": "c",
+        "ngiagoramedianodefactory.h": "c",
+        "sample_connection_observer.h": "c",
+        "sample_common.h": "c"
+    }
+}
