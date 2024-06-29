@@ -95,30 +95,30 @@ public:
 
     //----------------------------------------
 
-    //------------------------------------------------
+//     //------------------------------------------------
 
-  std::ostringstream filename;
-  filename << "py_out_" << count << ".bin";
+//   std::ostringstream filename;
+//   filename << "py_out_" << count << ".bin";
 
-  // Open a binary file for writing
-  std::ofstream outFile(filename.str(), std::ios::binary);
-  if (!outFile.is_open()) {
-      std::cerr << "Failed to open file for writing." << std::endl;
-      return ;
-  }
+//   // Open a binary file for writing
+//   std::ofstream outFile(filename.str(), std::ios::binary);
+//   if (!outFile.is_open()) {
+//       std::cerr << "Failed to open file for writing." << std::endl;
+//       return ;
+//   }
 
-  // Write the buffer to the file
-  outFile.write(reinterpret_cast<const char*>(frameBuf), sizeof(frameBuf));
+//   // Write the buffer to the file
+//   outFile.write(reinterpret_cast<const char*>(frameBuf), sizeof(frameBuf));
 
-  // Close the file
-  outFile.close();
+//   // Close the file
+//   outFile.close();
 
-  // Increment the file count after writing
-  count++;
+//   // Increment the file count after writing
+//   count++;
 
 
 
-  //-----------------------------------------------
+//   //-----------------------------------------------
 
 
 

@@ -20,9 +20,9 @@ def wait_before_next_send(interval):
 def send_audio(file_name, sample_rate=16000, num_channels=1):
     """Initialize Agora, create audio track, and send PCM data from file."""
     agora = pyagora.AgoraAPI()
-    token = "007eJxTYKitW3XbOPLHPElf/smhNo2Tmf4vS1bba51hKPy6VOyDq7sCg0WqWbKFSWJqimWigYlBYpplWmJKSrKBhaW5qam5SUqqyc7ctIZARoZ76pKsjAwQCOLzMaSk5ubHJ2ck5uWl5sQbMjAAADPrIb4="
-    channel_id = "demo_channel_1"
-    user_id = "3"
+    token = "007eJxTYFivtPdV0KXERdwhD5UKBJobUmM8rs9PSvptmN/Kb/Raw1eBwSLVLNnCJDE1xTLRwMQgMc0yLTElJdnAwtLc1NTcJCX1uGdFWkMgI0P2zGQmRgYIBPF5GFJSc/PjkzMS8/JScxgYACogIhM="
+    channel_id = "demo_channel"
+    user_id = "12345"
     out_connect=agora.connect(token, channel_id, user_id)
     print(out_connect)
     agora.create_audio_track()
