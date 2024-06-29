@@ -89,9 +89,9 @@ public:
     }else{
         std::memcpy(frameBuf, data_ptr, sendBytes);
     }
-    std::cout<<"-----------------Out 1 frame--------"<<numOfSamples<<","<< agora::rtc::TWO_BYTES_PER_SAMPLE<<","<<channels<<","<<sampleRate<<std::endl;
-    std::cout<<"SendBytes:"<<sendBytes<<std::endl;
-    std::cout<<sizeof(frameBuf)<<std::endl;
+    // std::cout<<"-----------------Out 1 frame--------"<<numOfSamples<<","<< agora::rtc::TWO_BYTES_PER_SAMPLE<<","<<channels<<","<<sampleRate<<std::endl;
+    // std::cout<<"SendBytes:"<<sendBytes<<std::endl;
+    // std::cout<<sizeof(frameBuf)<<std::endl;
 
     //----------------------------------------
 
