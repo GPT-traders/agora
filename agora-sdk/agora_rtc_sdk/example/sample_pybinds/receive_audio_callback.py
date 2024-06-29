@@ -12,6 +12,15 @@ import threading
 import queue
 # from langchain.prompts import PromptTemplate
 
+import signal
+
+
+
+def handle_sigint(signum, frame):
+    print("SIGINT received, exiting...")
+    exit(0)
+
+
 
 # Thread function to process data
 def process_thread(queue,agora_send):
@@ -23,31 +32,30 @@ def process_thread(queue,agora_send):
     num_samples = chunk_size// (num_channels * 2)  # 2 bytes per sample (16-bit audio)
     log_time=time.time()
     while True:
+        
         if queue.empty():
             time.sleep(0.050)
         data = queue.get()  # Get data from the queue
-        
+        next_call = time.time()
         for chunk in data.iter_bytes(chunk_size=chunk_size):
             
             if len(chunk)<chunk_size:
                 continue
             # print(time.time()-log_time)
             # log_time=time.time()
+            # print("Starting to send the data")
             agora_send.send_audio_pcm_data(chunk, num_samples, 2, num_channels, 24000)
-            # if prev_time==0:
-            #     time.sleep(10/1000)
-            # else:
-            # print(time.time()-prev_time)
-            processing_time = time.time()-prev_time
-            if processing_time>0.005:
-                print(processing_time)
-            wait_time=(9.8/1000)-(time.time()-prev_time)
-            if wait_time>0:
-                time.sleep(wait_time)
-            prev_time = time.time()
-
+            next_call+=0.01
+            sleep_time = max(0, next_call - time.time())
+            # print(sleep_time)
+            time.sleep(sleep_time)
 
 def main():
+
+    ### Signal kill
+
+    signal.signal(signal.SIGINT, handle_sigint)
+
     ### Meeting Vars
     options = pyagora.SampleOptions()
     options.appId = "007eJxTYPh6yXH7/RmFZ05eFFr74dzdyN8l67WK/vrc3VSysrretSFLgcEi1SzZwiQxNcUy0cDEIDHNMi0xJSXZwMLS3NTU3CQl1aevPq0hkJFhp+B1VkYGCATxeRhSUnPz45MzEvPyUnMYGAD9FScx"
@@ -83,50 +91,52 @@ def main():
     session_id = chat.start_new_chat()
     print(f"Chat session started with ID: {session_id}")    
     
-    if agora.connect():
-        print("Connected successfully.")
-        try:
-            with open('output_audio_from_python.pcm', 'wb') as f:
-                start_time = time.time()
-                while (time.time() - start_time) < 100:  # run for 10 seconds
-                    if not agora.pcm_frame_observer.is_queue_empty():
-                        audio_data = agora.pcm_frame_observer.pop_audio_data()
-                        if len(frames_queue)<10:
-                            frames_queue.append(bytes(audio_data))
-                        else:
-                            prev_time=time.time()
-                            merged_bytes= b''.join(frames_queue)
-                            frames_queue=[]
-                            vad_out=vad_processor.process_pcm_buffers([merged_bytes])
-                            if np.array(max(vad_out)) > 0.1: # To be changed later 
-                                compiled_audio.append(merged_bytes)  
-                                silent_count=0 
-                            else:
-                                silent_count+=1
-                                if silent_count>20 and len(compiled_audio)>0:
-                                    # prev_time=time.time()
-                                    compiled_audio_merged = b"".join(compiled_audio)
-                                    transcription = chat_utils.convert_bytes2text(bytes(compiled_audio_merged))
-                                    # now_time= time.time()
-                                    print(transcription)
-                                    response =asyncio.run(chat.send_message(transcription))
-                                    print(response)
-                                    wav_response=chat_utils.convert_txt2wav(response)
-                                    # print("Trasncription time:",now_time-prev_time)
-                                    send_data_queue.put(wav_response)
-                                    silent_count=0
-                                    compiled_audio=[]
-                                    compiled_audio_merged=""
-                            now_time=time.time()
-                            # print("single pass time: ",prev_time-now_time)
-                        f.write(bytes(audio_data))
-        except KeyboardInterrupt:
-            print("Loop has been stopped by Ctrl+C.")
-        finally:
-            agora.disconnect()
-            print("Disconnected.")
-    else:
+    if not agora.connect():
         print("Connection failed.")
+    try:
+        start_time = time.time()
+        while True:  # run for 10 seconds
+            if agora.pcm_frame_observer.is_queue_empty():
+                time.sleep(0.01)
+                continue
+            audio_data = agora.pcm_frame_observer.pop_audio_data()
+            if len(frames_queue)<10:
+                frames_queue.append(bytes(audio_data))
+                continue
+            merged_bytes= b''.join(frames_queue)
+            frames_queue=[]
+            vad_out=vad_processor.process_pcm_buffers([merged_bytes])
+            # vad_out = [round(num, 3) for num in vad_out]
+            # print(f"{vad_out}")
+            if np.array(max(vad_out)) > 0.5: # To be changed later 
+                compiled_audio.append(merged_bytes)  
+                silent_count=0 
+                continue
+            silent_count+=1
+            if silent_count>20 and len(compiled_audio)>0:
+                # prev_time=time.time()
+                compiled_audio_merged = b"".join(compiled_audio)
+                transcription = chat_utils.convert_bytes2text(bytes(compiled_audio_merged))
+                # now_time= time.time()
+                print(transcription)
+                response =asyncio.run(chat.send_message(transcription))
+                print(response)
+                pcm_response=chat_utils.convert_txt2wav(response)
+                # print("Trasncription time:",now_time-prev_time)
+                send_data_queue.put(pcm_response)
+                silent_count=0
+                compiled_audio=[]
+                compiled_audio_merged=""
+                
+            if (time.time()-start_time)>200:
+                break
+                    # print("single pass time: ",prev_time-now_time)
+    except KeyboardInterrupt:
+        print("Loop has been stopped by Ctrl+C.")
+    finally:
+        agora.disconnect()
+        print("Disconnected.")
+        
 
 if __name__ == "__main__":
     main()
