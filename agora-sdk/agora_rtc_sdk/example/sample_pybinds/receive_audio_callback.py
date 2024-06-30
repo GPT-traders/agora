@@ -58,7 +58,7 @@ def main():
 
     ### Meeting Vars
     options = pyagora.SampleOptions()
-    options.appId = "007eJxTYPh6yXH7/RmFZ05eFFr74dzdyN8l67WK/vrc3VSysrretSFLgcEi1SzZwiQxNcUy0cDEIDHNMi0xJSXZwMLS3NTU3CQl1aevPq0hkJFhp+B1VkYGCATxeRhSUnPz45MzEvPyUnMYGAD9FScx"
+    options.appId = "007eJxTYJATOOLx9oiNdJCQiT1v2MemO/zcVQ/d7sVwHJnSK3xfs0+BwSLVLNnCJDE1xTLRwMQgMc0yLTElJdnAwtLc1NTcJCX11P2GtIZARgYrUVtGRgYIBPF5GFJSc/PjkzMS8/JScxgYAKE3IKY="
     options.channelId = "demo_channel"
     options.userId = "12345"
 
@@ -118,8 +118,10 @@ def main():
                 compiled_audio_merged = b"".join(compiled_audio)
                 transcription = chat_utils.convert_bytes2text(bytes(compiled_audio_merged))
                 # now_time= time.time()
-                print(transcription)
-                response =asyncio.run(chat.send_message(transcription))
+                # print(transcription)
+                if len(transcription.text) <2:
+                    continue
+                response =asyncio.run(chat.send_message(transcription.text))
                 print(response)
                 pcm_response=chat_utils.convert_txt2wav(response)
                 # print("Trasncription time:",now_time-prev_time)
@@ -128,7 +130,7 @@ def main():
                 compiled_audio=[]
                 compiled_audio_merged=""
                 
-            if (time.time()-start_time)>200:
+            if (time.time()-start_time)>300:
                 break
                     # print("single pass time: ",prev_time-now_time)
     except KeyboardInterrupt:
